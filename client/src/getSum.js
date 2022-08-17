@@ -1,6 +1,5 @@
 const getValue = (card) => {
 	let value = card.split('-')[0];
-	console.log(value);
 	if (isNaN(value)) {
 		if (value === 'A') {
 			value = 11;
@@ -21,11 +20,11 @@ export const getSum = (cards) => {
 		let newCard = getValue(cards[i]);
 		sum += newCard;
 	}
-	if (sum > 21 && ace) {
+	if (sum > 21 && ace > 0) {
 		while (ace > 0) {
 			sum -= 10;
+			ace -= 1;
 		}
-		ace--;
 	}
 	return sum;
 };

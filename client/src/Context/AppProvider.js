@@ -25,8 +25,9 @@ function AppProvider({ children }) {
 		socket.on('reject', () => {
 			setNumberPlayers(-1);
 		});
+
 		return () => {
-			socket.removeAllListeners('joinedRoom');
+			socket.removeAllListeners();
 		};
 	}, []);
 

@@ -14,11 +14,19 @@ const PORT = process.env.PORT || 3001;
 
 let size;
 let keys = {};
-let users = ['dealer'];
+let dealer = ['dealer'];
+let users = [];
 let playCards = [];
-let rooms = [];
-let deck = buildDeck();
+let originalDeck = buildDeck();
+let deck = [...originalDeck];
 let popCards;
+let playAgain = {};
+
+setInterval(() => {
+	shuffleDeck(originalDeck);
+	deck = [...originalDeck];
+	popCards = initialize();
+}, 60 * 1000);
 
 const initialize = () => {
 	shuffleDeck(deck);
@@ -39,14 +47,12 @@ const io = new Server(server, {
 	},
 });
 
-function checkForBlackJack(cards) {
+function calcSum(cards) {
 	const newArray = playCards.map((card) => card.cards);
 
 	for (let i = 0; i < newArray.length; i++) {
 		cards[i].sum = getSum(newArray[i]);
 	}
-
-	return cards;
 }
 
 io.on('connection', (socket) => {
@@ -59,9 +65,29 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			socket.join(data.room);
-			if (!rooms.includes(data.room)) rooms.push(data.room);
-			keys[socket.id] = data.user;
-			users.push(data.user);
+
+			if (!keys[data.room]) {
+				keys[data.room] = {};
+				keys[data.room][data.user] = socket.id;
+			} else {
+				keys[data.room][data.user] = socket.id;
+			}
+		}
+	});
+
+	socket.on('playAgain', (data) => {
+		const { user, room, message } = data;
+		if (!playAgain[room]) {
+			playAgain[room] = {};
+			playAgain[room][user] = message;
+		} else {
+			playAgain[room][user] = message;
+		}
+		if (playAgain[room]?.length === keys[room]?.length) {
+			deck = [...originalDeck];
+			popCards = initialize();
+			io.to(socket.id).emit('restart', 'yes');
+			socket.to(room).emit('restart', 'yes');
 		}
 	});
 
@@ -69,58 +95,126 @@ io.on('connection', (socket) => {
 		size = io.sockets.adapter.rooms.get(data.room)?.size;
 		if (size === 2) {
 			io.to(socket.id).emit('joinedRoom', size);
-			check = size + 1;
 		}
 		socket.to(data.room).emit('joinedRoom', size);
 	});
 
+	socket.on('dealerTurn', (data) => {
+		deck = data.deck;
+		let newArray = [data.dealerCards, ...data.usersCards];
+		socket.to(data.room).emit('update', { deck, playCards: newArray });
+		while (data.dealerCards.sum < 17) {
+			data.dealerCards.cards.push(deck.pop());
+			data.dealerCards.sum = getSum(data.dealerCards.cards);
+			playCards = [data.dealerCards, ...data.usersCards];
+			io.to(socket.id).emit('update', {
+				deck,
+				playCards,
+			});
+			socket.to(data.room).emit('update', {
+				deck,
+				playCards,
+			});
+		}
+
+		const sums = playCards.map((user) => [user.sum, user.user]);
+		for (let i = 1; i < sums.length; i++) {
+			let id = keys[data.room][sums[i][1]];
+			let message;
+
+			const send = (message) => {
+				io.to(id).emit('results', message);
+				socket.to(data.room).emit('results', message);
+			};
+
+			if (sums[i][0] === sums[0][0]) {
+				message = "It' a tie";
+				send(message);
+			} else if (sums[i][0] === 21) {
+				message = 'You win';
+				send(message);
+			} else if (sums[0][0] > 21) {
+				message = 'You win';
+				send(message);
+			} else if (sums[i][0] < sums[0][0]) {
+				message = 'You lose';
+				send(message);
+			} else if (sums[i][0] > sums[0][0]) {
+				message = 'You win';
+				send(message);
+			}
+		}
+	});
+
 	socket.on('update', (data) => {
 		deck = data.deck;
-		playCards = data.usersCards;
+		playCards = [playCards[0], ...data.usersCards];
 		socket.to(data.room).emit('update', { deck, usersCards: data.usersCards });
 	});
 
 	socket.on('endTurn', (data) => {
-		let newArray;
 		if (data.usersCards) {
-			newArray = [playCards[0], ...data.usersCards];
+			let newArray = [playCards[0], ...data.usersCards];
+			playCards = newArray;
 		} else if (data.dealerCards) {
-			newArray = [data.dealerCards, ...playCards.slice(1)];
+			let newArray = [data.dealerCards, ...playCards.slice(1)];
+			playCards = newArray;
 		}
-		playCards = newArray;
 		socket.to(data.room).emit('endTurn', { playCards });
 	});
 
 	socket.on('gameLost', (data) => {
-		playCards = data.usersCards;
+		if (keys[data.room]) {
+			let newUsers = Object.keys(keys[room]);
+			users = dealer.concat(newUsers);
+		}
+		deck = data.newDeck;
+		playCards = [playCards[0], ...data.usersCards];
+
 		const name = data.newUser.user;
-		const found = playCards.find((user) => user.user === name);
+
 		users = users.filter((user) => user !== name);
-		const index = playCards.indexOf(found);
-		delete playCards[index];
-		socket.leave(data.room);
-		socket.to(data.room).emit('update', { deck, usersCards: playCards });
+
+		playCards = playCards.filter((user) => !(user.sum > 21));
+
+		socket.to(data.room).emit('update', { deck, playCards });
 	});
 
-	socket.on('initialize', ({ room, factor }) => {
+	socket.on('initialize', ({ room, answer }) => {
+		if (answer === 'no' && keys[room]) {
+			let newUsers = Object.keys(keys[room]);
+			users = dealer.concat(newUsers);
+		}
 		let newArray = [...popCards];
 		for (let i = 0; i < users.length; i++) {
 			playCards[i] = {
 				user: users[i],
 				cards: newArray.splice(-2),
-				priority: i === 1 ? true : false,
-				lost: false,
+				priority: 'false',
 			};
 		}
-		checkForBlackJack(playCards);
-		socket.to(room).emit('initialize', { deck, playCards });
+		playCards[1].priority = 'true';
+		calcSum(playCards);
+		socket.to(room).volatile.emit('initialize', { deck, playCards });
+	});
+
+	socket.on('disconnecting', () => {
+		let selectedRoom;
+		for (const room in keys) {
+			for (const user in keys[room]) {
+				if (keys[room][user] === socket.id) {
+					selectedRoom = room;
+					delete keys[room][user];
+				}
+			}
+		}
+		if (keys[selectedRoom]?.size === 0) {
+			delete keys[selectedRoom];
+		}
 	});
 
 	socket.on('disconnect', () => {
-		for (let i = 0; i < rooms.length; i++) {
-			socket.leave(rooms[i]);
-		}
-		users = ['dealer'];
+		console.log(socket.id + ' has been disconnected');
 	});
 });
 

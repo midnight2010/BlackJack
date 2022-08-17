@@ -25,6 +25,14 @@
 			h2 {
 				margin-bottom: 10px;
 			}
+
+			&__header {
+				@include flex(row, space-around, center);
+
+				& > * {
+					margin: 5px;
+				}
+			}
 		}
 
 		.users {
@@ -32,8 +40,12 @@
 			height: 50%;
 			@include flex(row, space-between, flex-start);
 
-			&__container {
-				@include flex(column, center, center);
+			&__header {
+				@include flex(row, flex-start, center);
+
+				& > * {
+					margin: 10px;
+				}
 			}
 		}
 	}
@@ -48,8 +60,19 @@
 			color: white;
 		}
 	}
-
+	.none {
+		display: none;
+	}
 	.red {
 		color: red;
+	}
+
+	.result {
+		font-size: 1.5rem;
+		margin-top: -30px;
+		margin-bottom: 20px;
+		text-align: center;
+		color: white;
+		font-weight: bold;
 	}
 }
