@@ -2,7 +2,7 @@ const getValue = (card) => {
 	let value = card.split('-')[0];
 	console.log(value);
 	if (isNaN(value)) {
-		if (value == 'A') {
+		if (value === 'A') {
 			value = 11;
 		}
 		value = 10;
@@ -11,7 +11,7 @@ const getValue = (card) => {
 	return parseInt(value);
 };
 
-const getSum = (cards) => {
+export const getSum = (cards) => {
 	let sum = 0;
 	let ace = 0;
 	for (let i = 0; i < cards.length; i++) {
@@ -29,5 +29,3 @@ const getSum = (cards) => {
 	}
 	return sum;
 };
-
-module.exports = getSum;

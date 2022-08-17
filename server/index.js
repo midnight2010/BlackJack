@@ -76,24 +76,43 @@ io.on('connection', (socket) => {
 
 	socket.on('update', (data) => {
 		deck = data.deck;
+		playCards = data.usersCards;
 		socket.to(data.room).emit('update', { deck, usersCards: data.usersCards });
 	});
 
 	socket.on('endTurn', (data) => {
-		console.log(data);
-		socket.to(data.room).emit('endTurn', { usersCards: data.usersCards });
+		let newArray;
+		if (data.usersCards) {
+			newArray = [playCards[0], ...data.usersCards];
+		} else if (data.dealerCards) {
+			newArray = [data.dealerCards, ...playCards.slice(1)];
+		}
+		playCards = newArray;
+		socket.to(data.room).emit('endTurn', { playCards });
+	});
+
+	socket.on('gameLost', (data) => {
+		playCards = data.usersCards;
+		const name = data.newUser.user;
+		const found = playCards.find((user) => user.user === name);
+		users = users.filter((user) => user !== name);
+		const index = playCards.indexOf(found);
+		delete playCards[index];
+		socket.leave(data.room);
+		socket.to(data.room).emit('update', { deck, usersCards: playCards });
 	});
 
 	socket.on('initialize', ({ room, factor }) => {
+		let newArray = [...popCards];
 		for (let i = 0; i < users.length; i++) {
 			playCards[i] = {
 				user: users[i],
-				cards: [popCards[i], popCards[i + 1]],
+				cards: newArray.splice(-2),
 				priority: i === 1 ? true : false,
+				lost: false,
 			};
 		}
-		console.log(checkForBlackJack(playCards));
-
+		checkForBlackJack(playCards);
 		socket.to(room).emit('initialize', { deck, playCards });
 	});
 
