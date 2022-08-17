@@ -1,0 +1,55 @@
+@use '../abstracts/' as *;
+
+.game {
+	color: white;
+	width: 100vw;
+	height: 100vh;
+	@include flex(column, center, center);
+
+	.players {
+		margin-top: -50px;
+		height: 90%;
+		width: 100%;
+		@include flex(column, space-around, center);
+		img {
+			height: 175px;
+			width: 125px;
+			margin: 2px;
+		}
+
+		.dealer {
+			width: 80%;
+			height: 50%;
+			@include flex(column, center, center);
+
+			h2 {
+				margin-bottom: 10px;
+			}
+		}
+
+		.users {
+			width: 80%;
+			height: 50%;
+			@include flex(row, space-between, flex-start);
+
+			&__container {
+				@include flex(column, center, center);
+			}
+		}
+	}
+
+	.actions {
+		@include flex(row, center, center);
+		@include button($buttonColor1, $secondaryWidth, $secondaryHeight);
+
+		& > .button {
+			font-style: italic;
+			font-weight: 500;
+			color: white;
+		}
+	}
+
+	.red {
+		color: red;
+	}
+}
