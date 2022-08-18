@@ -1,22 +1,21 @@
 const getValue = (card) => {
 	let value = card.split('-')[0];
-	if (isNaN(value)) {
-		if (value === 'A') {
-			value = 11;
-		}
-		value = 10;
+	if (value === 'A') {
+		return 11;
 	}
-
-	return parseInt(value);
+	if (value === 'Q' || value === 'K' || value === 'J') {
+		return 10;
+	} else return parseInt(value);
 };
 
 export const getSum = (cards) => {
 	let sum = 0;
 	let ace = 0;
 	for (let i = 0; i < cards.length; i++) {
-		if (cards[i].startsWith('A', 0)) {
+		if (cards[i].indexOf('A') !== -1) {
 			ace += 1;
 		}
+
 		let newCard = getValue(cards[i]);
 		sum += newCard;
 	}

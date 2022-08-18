@@ -56,8 +56,6 @@ function checkForBlackJack(cards) {
 }
 
 io.on('connection', (socket) => {
-	console.log(`${socket.id} has been connected`);
-
 	socket.on('joinRoom', (data) => {
 		size = io.sockets.adapter.rooms.get(data.room)?.size;
 		if (size > 1) {
@@ -167,11 +165,13 @@ io.on('connection', (socket) => {
 
 		const name = data.newUser.user;
 
+		console.log('Name: ', name);
 		users = users.filter((user) => user !== name);
+		console.log('Users: ', users);
 
 		playCards = playCards.filter((user) => !(user.sum > 21));
-
-		socket.to(data.room).emit('update', { deck, playCards });
+		console.log('PlayCards: ', playCards);
+		socket.to(data.room).emit('lessPlayers', { deck, playCards });
 	});
 
 	socket.on('initialize', ({ room }) => {
@@ -205,10 +205,6 @@ io.on('connection', (socket) => {
 		if (keys[selectedRoom]?.size === 1) {
 			delete keys[selectedRoom];
 		}
-	});
-
-	socket.on('disconnect', () => {
-		console.log(socket.id + ' has been disconnected');
 	});
 });
 

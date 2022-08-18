@@ -82,6 +82,7 @@ function Game() {
 
 	const endTurn = () => {
 		setCheck('false');
+		let newDeck = [...deck];
 		let newUserCards = [...usersCards];
 		let found = usersCards.find((name) => name?.priority === 'true');
 		const index = usersCards.indexOf(found);
@@ -99,7 +100,7 @@ function Game() {
 			};
 			setDealerCards(newDealerCards);
 			socket.emit('dealerTurn', {
-				deck,
+				deck: newDeck,
 				dealerCards: newDealerCards,
 				usersCards: newUserCards,
 				room,
@@ -110,6 +111,7 @@ function Game() {
 	useEffect(() => {
 		socket.emit('initialize', { room });
 		socket.on('initialize', (data) => {
+			buttonRef.current.classList.remove('none');
 			setDeck(data.deck);
 			setDealerCards(data.playCards[0]);
 			setUsersCards(data.playCards.slice(1));
@@ -135,6 +137,12 @@ function Game() {
 			setUsersCards(data.playCards.slice(1));
 		});
 
+		socket.on('lessPlayers', (data) => {
+			setCheck('true');
+			setDeck(data.deck);
+			setDealerCards(data.playCards[0]);
+			setUsersCards(data.playCards.slice(1));
+		});
 		socket.on('update', (data) => {
 			setDeck(data.deck);
 			setDealerCards(data.playCards[0]);
