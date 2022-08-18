@@ -4,6 +4,7 @@ import { AppContext } from '../Context/AppProvider';
 import { getSum } from '../getSum';
 
 function Game() {
+	let audio = new Audio('/audio/card.wav');
 	const { user, socket, room } = useContext(AppContext);
 	const [deck, setDeck] = useState([]);
 	const [dealerCards, setDealerCards] = useState({});
@@ -18,6 +19,7 @@ function Game() {
 		socket.emit('playAgain', { room, user, message: 'willing' });
 	};
 	const getCard = () => {
+		audio.play();
 		//find current client
 		const found = usersCards.find((name) => name?.priority === 'true');
 		//find index of current client
