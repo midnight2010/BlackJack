@@ -165,12 +165,9 @@ io.on('connection', (socket) => {
 
 		const name = data.newUser.user;
 
-		console.log('Name: ', name);
 		users = users.filter((user) => user !== name);
-		console.log('Users: ', users);
 
 		playCards = playCards.filter((user) => !(user.sum > 21));
-		console.log('PlayCards: ', playCards);
 		socket.to(data.room).emit('lessPlayers', { deck, playCards });
 	});
 
