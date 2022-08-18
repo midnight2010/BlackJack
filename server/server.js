@@ -7,8 +7,6 @@ const buildDeck = require('./helpers/buildDeck');
 const shuffleDeck = require('./helpers/shuffleDeck');
 const getSum = require('./helpers/getSum');
 
-if(process.env.NODE_ENV) { app.use(express.static('client/build')); const path = require('path'); app.get('*', (req, res) => { res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html')); }); } 
-
 require('dotenv').config();
 
 const server = http.createServer(app);
