@@ -108,7 +108,7 @@ function Game() {
 	};
 
 	useEffect(() => {
-		socket.emit('initialize', { room, answer: 'no' });
+		socket.emit('initialize', { room });
 		socket.on('initialize', (data) => {
 			setDeck(data.deck);
 			setDealerCards(data.playCards[0]);

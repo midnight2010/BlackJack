@@ -1,9 +1,7 @@
 const getValue = (card) => {
 	let value = card.split('-')[0];
-	console.log(value);
 	if (isNaN(value)) {
 		if (value === 'A') {
-			console.log(value);
 			value = 11;
 		}
 		value = 10;

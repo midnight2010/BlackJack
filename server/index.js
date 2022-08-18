@@ -65,7 +65,6 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			socket.join(data.room);
-			console.log(data.room, data.user, socket.id);
 			if (!keys[data.room]) {
 				keys[data.room] = {};
 				keys[data.room][data.user] = socket.id;
@@ -143,14 +142,12 @@ io.on('connection', (socket) => {
 				send(message);
 			}
 		}
-
-		console.log(sums);
 	});
 
 	socket.on('update', (data) => {
 		deck = [...data.deck];
 		playCards = [playCards[0], ...data.usersCards];
-		socket.to(data.room).emit('update', { deck, usersCards: data.usersCards });
+		socket.to(data.room).emit('update', { deck, playCards });
 	});
 
 	socket.on('endTurn', (data) => {
