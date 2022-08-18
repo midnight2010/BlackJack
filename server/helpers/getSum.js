@@ -19,11 +19,9 @@ const getSum = (cards) => {
 		newCard = getValue(cards[i]);
 		sum += newCard;
 	}
-	if (sum > 21 && ace > 0) {
-		while (ace > 0) {
-			sum -= 10;
-			ace--;
-		}
+	while (sum > 21 && ace > 0) {
+		sum -= 10;
+		ace -= 1;
 	}
 	return sum;
 };
