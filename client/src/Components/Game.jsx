@@ -109,18 +109,6 @@ function Game() {
 
 	useEffect(() => {
 		socket.emit('initialize', { room, answer: 'no' });
-		socket.on('restart', (answer) => {
-			if (answer === 'yes') {
-				setResult('');
-				socket.emit('initialize', { room, answer: 'yes' });
-			}
-		});
-		return () => {
-			socket.removeAllListeners('initialize');
-		};
-	}, [socket, room]);
-
-	useEffect(() => {
 		socket.on('initialize', (data) => {
 			setDeck(data.deck);
 			setDealerCards(data.playCards[0]);
@@ -128,6 +116,13 @@ function Game() {
 			setCheck(
 				data.playCards.slice(1).find((name) => name.user === user).priority
 			);
+		});
+
+		socket.on('restart', (answer) => {
+			if (answer === 'yes') {
+				setResult('');
+				socket.emit('initialize', { room, answer: 'yes' });
+			}
 		});
 
 		socket.on('results', (message) => {
@@ -141,13 +136,11 @@ function Game() {
 		});
 
 		socket.on('update', (data) => {
-			if (data.deck !== deck) {
-				setDeck(data.deck);
-			}
+			setDeck(data.deck);
 			setDealerCards(data.playCards[0]);
 			setUsersCards(data.playCards.slice(1));
 		});
-	}, [socket, room, user, deck]);
+	}, [socket, room, user]);
 	return (
 		<div className="game">
 			<div className="players">

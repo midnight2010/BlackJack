@@ -47,7 +47,7 @@ const io = new Server(server, {
 	},
 });
 
-function calcSum(cards) {
+function checkForBlackJack(cards) {
 	const newArray = playCards.map((card) => card.cards);
 
 	for (let i = 0; i < newArray.length; i++) {
@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			socket.join(data.room);
-
+			console.log(data.room, data.user, socket.id);
 			if (!keys[data.room]) {
 				keys[data.room] = {};
 				keys[data.room][data.user] = socket.id;
@@ -73,6 +73,14 @@ io.on('connection', (socket) => {
 				keys[data.room][data.user] = socket.id;
 			}
 		}
+	});
+
+	socket.on('checkPlayers', (data) => {
+		size = io.sockets.adapter.rooms.get(data.room)?.size;
+		if (size === 2) {
+			io.to(socket.id).emit('joinedRoom', size);
+		}
+		socket.to(data.room).emit('joinedRoom', size);
 	});
 
 	socket.on('playAgain', (data) => {
@@ -91,16 +99,8 @@ io.on('connection', (socket) => {
 		}
 	});
 
-	socket.on('checkPlayers', (data) => {
-		size = io.sockets.adapter.rooms.get(data.room)?.size;
-		if (size === 2) {
-			io.to(socket.id).emit('joinedRoom', size);
-		}
-		socket.to(data.room).emit('joinedRoom', size);
-	});
-
 	socket.on('dealerTurn', (data) => {
-		deck = data.deck;
+		deck = [...data.deck];
 		let newArray = [data.dealerCards, ...data.usersCards];
 		socket.to(data.room).emit('update', { deck, playCards: newArray });
 		while (data.dealerCards.sum < 17) {
@@ -124,7 +124,6 @@ io.on('connection', (socket) => {
 
 			const send = (message) => {
 				io.to(id).emit('results', message);
-				socket.to(data.room).emit('results', message);
 			};
 
 			if (sums[i][0] === sums[0][0]) {
@@ -144,10 +143,12 @@ io.on('connection', (socket) => {
 				send(message);
 			}
 		}
+
+		console.log(sums);
 	});
 
 	socket.on('update', (data) => {
-		deck = data.deck;
+		deck = [...data.deck];
 		playCards = [playCards[0], ...data.usersCards];
 		socket.to(data.room).emit('update', { deck, usersCards: data.usersCards });
 	});
@@ -164,11 +165,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('gameLost', (data) => {
-		if (keys[data.room]) {
-			let newUsers = Object.keys(keys[room]);
-			users = dealer.concat(newUsers);
-		}
-		deck = data.newDeck;
+		deck = [...data.newDeck];
 		playCards = [playCards[0], ...data.usersCards];
 
 		const name = data.newUser.user;
@@ -180,8 +177,8 @@ io.on('connection', (socket) => {
 		socket.to(data.room).emit('update', { deck, playCards });
 	});
 
-	socket.on('initialize', ({ room, answer }) => {
-		if (answer === 'no' && keys[room]) {
+	socket.on('initialize', ({ room }) => {
+		if (keys[room]) {
 			let newUsers = Object.keys(keys[room]);
 			users = dealer.concat(newUsers);
 		}
@@ -194,7 +191,7 @@ io.on('connection', (socket) => {
 			};
 		}
 		playCards[1].priority = 'true';
-		calcSum(playCards);
+		checkForBlackJack(playCards);
 		socket.to(room).volatile.emit('initialize', { deck, playCards });
 	});
 
@@ -208,7 +205,7 @@ io.on('connection', (socket) => {
 				}
 			}
 		}
-		if (keys[selectedRoom]?.size === 0) {
+		if (keys[selectedRoom]?.size === 1) {
 			delete keys[selectedRoom];
 		}
 	});
