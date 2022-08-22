@@ -2,20 +2,38 @@
 
 .game {
 	color: white;
-	width: 100vw;
-	height: 100vh;
 	@include flex(column, center, center);
 
-	.players {
-		margin-top: -50px;
+	img {
+		height: 175px;
+		width: 125px;
+		margin: 2px;
+	}
+
+	@include lg() {
+		padding: 10px;
+
+		img {
+			height: 145px;
+			width: 95px;
+			margin: 2px;
+		}
+	}
+
+	@include md() {
+		padding: 15px;
+
+		img {
+			height: 125px;
+			width: 75px;
+			margin: 2px;
+		}
+	}
+
+	.users {
 		height: 90%;
 		width: 100%;
 		@include flex(column, space-around, center);
-		img {
-			height: 175px;
-			width: 125px;
-			margin: 2px;
-		}
 
 		.dealer {
 			width: 80%;
@@ -33,19 +51,32 @@
 					margin: 5px;
 				}
 			}
+
+			&__cards {
+				display: flex;
+			}
 		}
 
-		.users {
+		.players {
 			width: 80%;
 			height: 50%;
 			@include flex(row, space-between, flex-start);
+		}
+
+		.player {
+			@include flex(column, center, flex-start);
 
 			&__header {
+				height: 50px;
 				@include flex(row, flex-start, center);
 
 				& > * {
 					margin: 10px;
 				}
+			}
+
+			&__cards {
+				display: flex;
 			}
 		}
 	}
@@ -54,6 +85,18 @@
 		@include flex(row, center, center);
 		@include button($buttonColor1, $secondaryWidth, $secondaryHeight);
 
+		@include lg() {
+			.button {
+				height: 60px;
+				width: 60px;
+			}
+		}
+		@include md() {
+			.button {
+				height: 50px;
+				width: 50px;
+			}
+		}
 		& > .button {
 			font-style: italic;
 			font-weight: 500;
@@ -63,8 +106,14 @@
 	.none {
 		display: none;
 	}
-	.red {
-		color: red;
+
+	.priority {
+		letter-spacing: 1px;
+		padding: 2px 15px;
+		color: black;
+		background-color: white;
+		border: 1px solid gray;
+		border-radius: 10px;
 	}
 
 	.result {

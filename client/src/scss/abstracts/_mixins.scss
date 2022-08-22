@@ -1,3 +1,17 @@
+@use './variables' as *;
+
+@mixin lg() {
+	@media (max-width: $lg) {
+		@content;
+	}
+}
+
+@mixin md() {
+	@media (max-width: $md) {
+		@content;
+	}
+}
+
 @mixin button($value, $width, $height) {
 	.button {
 		width: $width;

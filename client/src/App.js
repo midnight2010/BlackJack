@@ -1,10 +1,15 @@
+import { useContext } from 'react';
+import { AppContext } from './Context/AppProvider';
+import Join from './Components/Join';
+import Game from './Components/Game';
 import './scss/index.scss';
-import Main from './Components/Main';
 
 function App() {
+	const { startGame } = useContext(AppContext);
 	return (
-		<div className="main">
-			<Main />
+		<div>
+			{!startGame && <Join />}
+			{startGame && <Game />}
 		</div>
 	);
 }

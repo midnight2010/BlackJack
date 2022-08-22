@@ -1,6 +1,7 @@
 @use '../abstracts/' as *;
 
 .joinChatContainer {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	text-align: center;
@@ -9,11 +10,19 @@
 	input {
 		width: 250px;
 		height: 40px;
+		border: none;
 		margin: 7px;
-		border: 2px solid #43a047;
 		border-radius: 5px;
 		padding: 5px;
 		font-size: 16px;
+
+		&:focus {
+			outline: none;
+		}
+
+		&:disabled {
+			background-color: white;
+		}
 	}
 
 	@include button($buttonColor1, $primaryWidth, $primaryHeight);
@@ -66,6 +75,33 @@
 	}
 	50% {
 		opacity: 0.5;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+.hide {
+	display: none;
+}
+.modal {
+	position: absolute;
+	bottom: 50%;
+	z-index: 10;
+	opacity: 1;
+	padding: 10px;
+	border-radius: 10px;
+	background-color: white;
+	font-size: 1.5rem;
+	animation: linger 3s;
+}
+
+@keyframes linger {
+	50% {
+		opacity: 1;
+	}
+	75% {
+		opacity: 1;
 	}
 	100% {
 		opacity: 0;
