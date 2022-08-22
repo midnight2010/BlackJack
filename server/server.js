@@ -25,12 +25,9 @@ let users = [];
 let playCards = {};
 const limit = 3;
 let check;
-
-const initialize = () => {};
+let count = {};
 
 io.on('connection', (socket) => {
-	console.log('This user connected');
-
 	socket.on('joinRoom', ({ user, room }) => {
 		if (!rooms[room]) {
 			rooms[room] = ['Dealer'];
@@ -69,7 +66,6 @@ io.on('connection', (socket) => {
 				};
 			}
 		}
-
 		check = false;
 		io.sockets.to(room).emit('initialize', { playCards: playCards[room] });
 	});
@@ -106,6 +102,30 @@ io.on('connection', (socket) => {
 		}
 
 		io.sockets.to(room).emit('endTurn', { playCards: playCards[room] });
+	});
+
+	socket.on('playAgain', ({ room }) => {
+		if (count[room]) {
+			count[room] += 1;
+		} else count[room] = 1;
+		if (count[room] === rooms[room].length - 1) {
+			gameDecks[room] = buildDeck();
+			let newUsers = rooms[room];
+			let newDeck = gameDecks[room];
+			playCards[room] = [];
+
+			for (let i = 0; i < newUsers.length; i++) {
+				let cards = newDeck.splice(-2);
+				playCards[room][i] = {
+					name: newUsers[i],
+					cards: cards,
+					priority: i === 1 ? true : false,
+					sum: getSum(cards),
+				};
+			}
+			io.sockets.to(room).emit('playAgain', { playCards: playCards[room] });
+			count[room] = 0;
+		}
 	});
 
 	socket.on('dealerTurn', ({ room }) => {

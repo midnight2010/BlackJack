@@ -13,6 +13,10 @@ function Game() {
 		socket.emit('getCard', { room, user });
 	};
 
+	const playAgain = () => {
+		socket.emit('playAgain', { room, user });
+	};
+
 	const endTurn = () => {
 		setDisable(true);
 		socket.emit('endTurn', { room, user });
@@ -29,6 +33,17 @@ function Game() {
 			setPlayersCards(playCards.slice(1));
 		});
 
+		socket.on('playAgain', ({ playCards }) => {
+			let newPlayCards = playCards.slice(1);
+			setDealerCards(playCards[0]);
+			setPlayersCards(playCards.slice(1));
+			setResult('');
+			for (let i = 0; i < newPlayCards.length; i++) {
+				if (newPlayCards[i].name === user) {
+					setDisable(!newPlayCards[i].priority);
+				}
+			}
+		});
 		socket.on('getCard', ({ playCards }) => {
 			setDealerCards(playCards[0]);
 			setPlayersCards(playCards.slice(1));
@@ -49,7 +64,6 @@ function Game() {
 				}
 			}
 			if (playCards[0].priority) {
-				console.log('This stars the dealerTurn');
 				socket.emit('dealerTurn', { room });
 			}
 		});
@@ -77,7 +91,7 @@ function Game() {
 					Stay
 				</button>
 				{result && (
-					<button className="button" disabled={!disable}>
+					<button className="button" disabled={!disable} onClick={playAgain}>
 						Play Again
 					</button>
 				)}

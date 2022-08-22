@@ -20,7 +20,6 @@ function Players({ player }) {
 					<img src={'images/cards/' + card + '.png'} alt={card} key={index} />
 				))}
 			</div>
-			<p>{`${player.priority}`}</p>
 		</div>
 	);
 }
